@@ -3275,17 +3275,23 @@ type $$Parser interface {
 	Lookahead() int
 }
 
+type $$ValueParser interface {
+	ParseValue($$Lexer) ($$SymType, int)
+	$$Parser
+}
+
 type $$ParserImpl struct {
-	lval  $$SymType
-	stack [$$InitialStackSize]$$SymType
-	char  int
+	lval    $$SymType
+	stack   [$$InitialStackSize]$$SymType
+	char    int
+	result  $$SymType
 }
 
 func (p *$$ParserImpl) Lookahead() int {
 	return p.char
 }
 
-func $$NewParser() $$Parser {
+func $$NewParser() $$ValueParser {
 	return &$$ParserImpl{}
 }
 
@@ -3408,11 +3414,20 @@ out:
 	return char, token
 }
 
+func $$ParseValue($$lex $$Lexer) ($$SymType, int) {
+	return $$NewParser().ParseValue($$lex)
+}
+
 func $$Parse($$lex $$Lexer) int {
 	return $$NewParser().Parse($$lex)
 }
 
 func ($$rcvr *$$ParserImpl) Parse($$lex $$Lexer) int {
+	_, res := $$rcvr.ParseValue($$lex)
+	return res
+}
+
+func ($$rcvr *$$ParserImpl) ParseValue($$lex $$Lexer) ($$SymType, int) {
 	var $$n int
 	var $$VAL $$SymType
 	var $$Dollar []$$SymType
@@ -3434,10 +3449,10 @@ func ($$rcvr *$$ParserImpl) Parse($$lex $$Lexer) int {
 	goto $$stack
 
 ret0:
-	return 0
+	return $$rcvr.result, 0
 
 ret1:
-	return 1
+	return $$SymType{}, 1
 
 $$stack:
 	/* put a state and value onto the stack */
@@ -3570,6 +3585,7 @@ $$default:
 		$$S = nyys
 	}
 	$$VAL = $$S[$$p+1]
+	$$rcvr.result = $$VAL
 
 	/* consult goto table to find next state */
 	$$n = $$R1[$$n]

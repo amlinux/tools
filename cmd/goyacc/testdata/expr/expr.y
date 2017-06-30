@@ -38,16 +38,6 @@ import (
 
 %%
 
-top:
-	expr
-	{
-		if $1.IsInt() {
-			fmt.Println($1.Num().String())
-		} else {
-			fmt.Println($1.String())
-		}
-	}
-
 expr:
 	expr1
 |	'+' expr
@@ -197,6 +187,11 @@ func main() {
 			log.Fatalf("ReadBytes: %s", err)
 		}
 
-		exprParse(&exprLex{line: line})
+		res, _ := exprParseValue(&exprLex{line: line})
+        if res.num.IsInt() {
+            fmt.Println(res.num.Num().String())
+        } else {
+            fmt.Println(res.num.String())
+        }
 	}
 }
